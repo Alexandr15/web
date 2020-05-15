@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>sneak</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <style type="text/css">
+            body{
+                background-color: gainsboro;
+            }
+
+            *{
+                box-sizing: content-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            .rect{
+                width: 10px;
+                height: 10px;
+                float: left;
+            }
+            .desk{
+                position: absolute;
+                left: 40%;
+                top: 10%;
+                border: 1px solid black;
+            }
+            #sum{
+                position: absolute;
+                left: 40%;
+                top: 5%;
+            }
+        </style>
+
+    </head>
+    <body>
+        <div class="desk"></div>
+        <div id="sum">0</div>
+
+
+        <script type="text/javascript">
+
+            let desk_cols = 20;
+            let desk_rows = 40;
+            let side = 10;
+
+            draw_desk(desk_rows, desk_cols);
+
+            function Zveno(col, row) {
+                this.col = col;
+                this.row = row;
+            }
+
+            let map = [];
+
+            for (var i = 0; i < desk_rows; i++) {
+                map[i] = [];
+                for (var j = 0; j < desk_cols; j++) {
+                    map[i][j] = 0;
+                }
+            }
+
+            let key = move_random();
+            let delay = 300;
+            let count = 0;
+
+            let sneak = [new Zveno(getRandomInt(1, 20), getRandomInt(1, 40))];
+
+            let apple = null;
+            add_apple();
+            init_map();
+            draw();
+
+            let body = document.querySelector("body");
+            body.addEventListener("keydown", move);
+
+            let sum = document.getElementById("sum");
+
+            /***********************************run*********************************/
+
+            let timerId = setTimeout(function tick() {
+
+                if (sneak[0].col - 1 < 0 || sneak[0].col + 1 === desk_cols || sneak[0].row - 1 < 0 || sneak[0].row + 1 === desk_rows) {
+                    clearTimeout(timerId);
+                    alert("Змейка убилась об стену! Печаль! F5 для старта!");
+                    return;
+                }
+
+                if (is_end()) {
+                    clearTimeout(timerId);
+                    alert("Змейка сожрала себя! Печаль! F5 для старта!");
+                    return;
+                }
+
+                switch (key) {
+                    case 37:  // если нажата клавиша влево
+                        if (sneak[0].col - 1 >= 0 && is_apple(sneak[0].col - 1, sneak[0].row)) {
+                            move_zveno(sneak[0].col - 1, sneak[0].row);
+                        }
+                        break;
+                    case 38:   // если нажата клавиша вверх
+                        if (sneak[0].row - 1 >= 0 && is_apple(sneak[0].col, sneak[0].row - 1)) {
+                            move_zveno(sneak[0].col, sneak[0].row - 1);
+                        }
+                        break;
+                    case 39:   // если нажата клавиша вправо
+                        if (sneak[0].col + 1 < desk_cols && is_apple(sneak[0].col + 1, sneak[0].row)) {
+                            move_zveno(sneak[0].col + 1, sneak[0].row);
+                        }
+                        break;
+                    case 40:   // если нажата клавиша вниз                        
+                        if (sneak[0].row + 1 < desk_rows && is_apple(sneak[0].col, sneak[0].row + 1)) {
+                            move_zveno(sneak[0].col, sneak[0].row + 1);
+                        }
+                        break;
+                }
+                init_map();
+                draw();
+                timerId = setTimeout(tick, delay);
+            }, delay);
+
+            function move(e) {
+                key = e.keyCode;
+            }
+
+            function is_end() {
+                for (var i = 1, max = sneak.length; i < max; i++) {
+                    if (sneak[0].col === sneak[i].col && sneak[0].row === sneak[i].row) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            function move_random() {
+                switch (getRandomInt(1, 5)) {
+                    case 1:
+                        return 37;
+                    case 2:
+                        return 38;
+                    case 3:
+                        return 39;
+                    case 4:
+                        return 40;
+                }
+            }
+
+            function is_apple(col, row) {
+                if (col === apple.col && row === apple.row) {
+                    add_zveno(apple.col, apple.row);
+                    add_apple();
+                    count++;
+                    sum.innerHTML = count;
+                    return false;
+                }
+                return true;
+            }
+
+            function move_zveno(col, row) {
+                let ar = sneak;
+                sneak = [];
+                sneak[0] = new Zveno(col, row);
+                for (var i = 0, max = ar.length - 1; i < max; i++) {
+                    sneak[i + 1] = new Zveno(ar[i].col, ar[i].row);
+                }
+            }
+
+            function add_zveno(col, row) {
+                let ar = sneak;
+                sneak = [];
+                sneak[0] = new Zveno(col, row);
+                for (var i = 0, max = ar.length; i < max; i++) {
+                    sneak[i + 1] = new Zveno(ar[i].col, ar[i].row);
+                }
+            }
+
+            function init_map() {
+                let max = sneak.length;
+                for (var i = 0; i < desk_rows; i++) {
+                    for (var j = 0; j < desk_cols; j++) {
+                        map[i][j] = 0;
+                        for (var z = 0; z < max; z++) {
+                            if (i === sneak[z].row && j === sneak[z].col) {
+                                map[i][j] = 1;
+                                break;
+                            }
+                        }
+
+                        if (i === apple.row && j === apple.col) {
+                            map[i][j] = 2;
+                        }
+                    }
+                }
+            }
+
+            function draw_desk(rows, cols) {
+                let desk = document.querySelector(".desk");
+                desk.style.width = (desk_cols * side) + "px";
+                desk.style.height = (desk_rows * side) + "px";
+
+                for (var i = 0, w = rows; i < w; i++) {
+                    for (var j = 0, h = cols; j < h; j++) {
+                        let rect = document.createElement("div");
+                        rect.className = "rect";
+                        desk.append(rect);
+                    }
+                }
+            }
+
+            function add_apple() {
+                apple = new Zveno(getRandomInt(2, 19), getRandomInt(2, 39));
+
+                let flag = true;
+                for (var i = 0, max = sneak.length; i < max; i++) {
+                    if (sneak[i].col === apple.col && sneak[i].row === apple.row) {
+                        flag = false;
+                        break;
+                    }
+                }
+
+                if (flag) {
+                    return;
+                } else {
+                    add_apple();
+                }
+            }
+
+            function draw() {
+                let rects = document.querySelectorAll("div.rect");
+                let index = 0;
+                for (var i = 0; i < desk_rows; i++) {
+                    for (var j = 0; j < desk_cols; j++) {
+                        if (map[i][j] === 0) {
+                            rects[index].style.backgroundColor = "";
+                        } else if (map[i][j] === 1) {
+                            rects[index].style.backgroundColor = "red";
+                        } else if (map[i][j] === 2) {
+                            rects[index].style.backgroundColor = "green";
+                        }
+                        index++;
+                    }
+                }
+            }
+
+            function getRandomInt(min, max) {
+                return Math.floor(Math.random() * (max - min)) + min; //Максимум не включается, минимум включается
+            }
+        </script>
+    </body>
+</html>
