@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Sea</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style type="text/css">
+
+            *{
+                box-sizing: content-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body{
+                background-color: #CCCCCC;
+            }
+
+            .container{
+                position: absolute;
+                left: 10px;
+                top: 10px;
+                border: 1px solid black;
+                width: 844px;
+                height: 632px;
+            }
+
+            .desk1, .desk2{
+                border: 1px solid black;
+                width: 400px;
+                height: 400px;
+                margin: 10px 10px 10px 10px;
+            }
+
+            .desk1{
+                float: left;
+            }
+
+            .desk2{                
+                float: right;
+            }
+
+            .rect{
+                width: 40px;
+                height: 40px;
+                background-color: deepskyblue;
+                opacity: 1;
+                float: left;
+            }
+
+            .mes{                
+                width: 822px;
+                height: 200px;
+                margin: 0 10px 10px 10px;
+                clear: both;
+            }
+
+            .textarea{
+                width: 100%;
+                height: 100%;
+                resize: none;
+                overflow-y: scroll;
+                background-color: white;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="desk1">
+            </div>
+            <div class="desk2">
+            </div>
+
+            <div class="mes">
+                <textarea id="log" class="textarea" disabled></textarea>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+
+            function position_center() {
+                let winW = document.documentElement.clientWidth;
+                let winH = document.documentElement.clientHeight;
+                let contW = document.querySelector(".container").clientWidth;
+                let contH = document.querySelector(".container").clientHeight;
+                let res = 0;
+
+                if (winW > contW) {
+                    res = Math.floor((winW - contW) / 2);
+                    document.querySelector(".container").style.left = res + "px";
+                }
+
+                if (winH > contH) {
+                    res = Math.floor((winH - contH) / 2);
+                    document.querySelector(".container").style.top = res + "px";
+                }
+
+            }
+            
+            position_center();
+            
+            window.addEventListener("resize", position_center);
+
+            let one = [
+                [0, 0, 0],
+                [0, 1, 0],
+                [0, 0, 0]
+            ];
+
+            let ver2 = [
+                [0, 0, 0],
+                [0, 2, 0],
+                [0, 2, 0],
+                [0, 0, 0]
+            ];
+
+            let gor2 = [
+                [0, 0, 0, 0],
+                [0, 2, 2, 0],
+                [0, 0, 0, 0]
+            ];
+
+            let ver3 = [
+                [0, 0, 0],
+                [0, 3, 0],
+                [0, 3, 0],
+                [0, 3, 0],
+                [0, 0, 0]
+            ];
+
+            let gor3 = [
+                [0, 0, 0, 0, 0],
+                [0, 3, 3, 3, 0],
+                [0, 0, 0, 0, 0]
+            ];
+
+            let ver4 = [
+                [0, 0, 0],
+                [0, 4, 0],
+                [0, 4, 0],
+                [0, 4, 0],
+                [0, 4, 0],
+                [0, 0, 0]
+            ];
+
+            let gor4 = [
+                [0, 0, 0, 0, 0, 0],
+                [0, 4, 4, 4, 4, 0],
+                [0, 0, 0, 0, 0, 0]
+            ];
+
+            let side = 10;
+            let user_hit = 0;
+            let turn = true;
+
+            let map1 = [];
+            let map2 = [];
+            init_map(map1); // user
+            init_map(map2); // enemy
+
+            function Hit(ship, hit) {
+                this.ship = ship;
+                this.hit = hit;
+            }
+
+            let point = new Hit(0, false);
+
+            function Coor(x, y) {
+                this.x = x;
+                this.y = y;
+            }
+
+            let coor = [];
+
+            let desk1 = document.querySelector(".desk1");
+            desk1.addEventListener("mousedown", click_coor);
+
+            let desk2 = document.querySelector(".desk2");
+            desk2.addEventListener("mousedown", click_coor);
+
+            init_desk(desk1); // desk user
+            init_desk(desk2); // desk enemy
+
+            // create ships user random
+            if (getRandomInt(1, 3) === 1) {
+                init_ship(map1, gor4);
+            } else {
+                init_ship(map1, ver4);
+            }
+
+            set_three_deck(map1);
+
+            set_two_deck(map1);
+
+            init_ship(map1, one);
+            init_ship(map1, one);
+            init_ship(map1, one);
+            init_ship(map1, one);
+
+            // create ships enemy random
+            if (getRandomInt(1, 3) === 1) {
+                init_ship(map2, gor4);
+            } else {
+                init_ship(map2, ver4);
+            }
+
+            set_three_deck(map2);
+
+            set_two_deck(map2);
+
+            init_ship(map2, one);
+            init_ship(map2, one);
+            init_ship(map2, one);
+            init_ship(map2, one);
+
+            // draw maps
+            draw(map1, desk1);
+            //draw(map2, desk2);
+            log("Инициализация данных закончена!\nСтарт игры!");
+
+            function set_three_deck(map) {
+                for (var i = 0; i < 2; i++) {
+                    if (getRandomInt(1, 3) === 1) {
+                        init_ship(map, gor3);
+                    } else {
+                        init_ship(map, ver3);
+                    }
+                }
+            }
+
+            function set_two_deck(map) {
+                for (var i = 0; i < 3; i++) {
+                    if (getRandomInt(1, 3) === 1) {
+                        init_ship(map, gor2);
+                    } else {
+                        init_ship(map, ver2);
+                    }
+                }
+            }
+
+            function init_map(ar) {
+                for (var i = 0; i < side; i++) {
+                    ar[i] = [];
+                    for (var j = 0; j < side; j++) {
+                        ar[i][j] = 0;
+                    }
+                }
+            }
+
+            function init_desk(elem) {
+                for (var i = 0; i < side; i++) {
+                    for (var j = 0; j < side; j++) {
+                        let rect = document.createElement("div");
+                        rect.classList.add("rect");
+
+                        if (elem.className === "desk2") {
+                            rect.addEventListener("mouseover", function () {
+                                this.style.opacity = 0.5;
+                            });
+
+                            rect.addEventListener("mouseout", function () {
+                                this.style.opacity = 1;
+                            });
+                        }
+
+                        elem.append(rect);
+                    }
+                }
+            }
+
+            function click_coor(e) {
+
+                if (!turn) {
+                    return;
+                }
+
+                let target = e.currentTarget.getBoundingClientRect();
+                let x = Math.floor(e.clientX - target.left);
+                let y = Math.floor(e.clientY - target.top);
+
+                let rect = document.querySelector("div.rect");
+                let w = rect.clientWidth;
+                let h = rect.clientHeight;
+
+                let index = 0;
+
+                for (var i = 0; i < side; i++) {
+                    for (var j = 0; j < side; j++) {
+                        if (i * h < y && i * h + h > y && j * w < x && j * w + w > x) {
+                            turn = false;
+
+                            let res = shot_user(i, j);
+                            draw_shot(j, i, map2, desk2);
+
+                            if (end_game(map2)) {
+                                desk2.removeEventListener("mousedown", click_coor);
+                                log("Вы победили!");
+                            }
+
+                            if (res) {
+                                turn = true;
+                            } else {
+                                turn_enemy();
+                            }
+
+                            return;
+                        }
+                        index++;
+                    }
+                }
+            }
+
+            function turn_enemy() {
+                let i, j;
+
+                if (point.ship === 1) {
+                    point.hit = false;
+                }
+
+                if (coor.length === point.ship) {
+                    init_empty();
+                    coor = [];
+                    point.hit = false;
+                }
+
+                if (point.hit) {
+                    let p = shot_enemy();
+                    j = p.x;
+                    i = p.y;
+                } else {
+                    let p = is_exist_hit();
+                    j = p.x;
+                    i = p.y;
+                }
+
+                if (map1[i][j] === 1 || map1[i][j] === 2 || map1[i][j] === 3 || map1[i][j] === 4) {
+                    point = new Hit(map1[i][j], true);
+                    coor[coor.length] = new Coor(j, i);
+                    map1[i][j] = 6;
+                } else {
+                    point.hit = false;
+                    map1[i][j] = 5;
+                }
+
+                draw_shot(j, i, map1, desk1);
+
+                if (end_game(map1)) {
+                    desk2.removeEventListener("mousedown", click_coor);
+                    log("Вы проиграли!");
+                    return;
+                }
+
+                if (point.hit) {
+                    turn_enemy();
+                } else {
+                    turn = true;
+                }
+            }
+
+            function init_empty() {
+                for (var i = 0, max = coor.length; i < max; i++) {
+                    if (coor[i].x - 1 >= 0 && coor[i].y - 1 >= 0 && map1[coor[i].y - 1][coor[i].x - 1] === 0) {
+                        map1[coor[i].y - 1][coor[i].x - 1] = 5;
+                        //draw_shot(coor[i].x - 1, coor[i].y - 1, map1, desk1);
+                    }
+
+                    if (coor[i].x - 1 >= 0 && map1[coor[i].y][coor[i].x - 1] === 0) {
+                        map1[coor[i].y][coor[i].x - 1] = 5;
+                        //draw_shot(coor[i].x - 1, coor[i].y, map1, desk1);
+                    }
+
+                    if (coor[i].x - 1 >= 0 && coor[i].y + 1 < side && map1[coor[i].y + 1][coor[i].x - 1] === 0) {
+                        map1[coor[i].y + 1][coor[i].x - 1] = 5;
+                        //draw_shot(coor[i].x - 1, coor[i].y + 1, map1, desk1);
+                    }
+
+                    if (coor[i].y + 1 < side && map1[coor[i].y + 1][coor[i].x] === 0) {
+                        map1[coor[i].y + 1][coor[i].x] = 5;
+                        //draw_shot(coor[i].x, coor[i].y + 1, map1, desk1);
+                    }
+
+                    if (coor[i].x + 1 < side && coor[i].y + 1 < side && map1[coor[i].y + 1][coor[i].x + 1] === 0) {
+                        map1[coor[i].y + 1][coor[i].x + 1] = 5;
+                        //draw_shot(coor[i].x + 1, coor[i].y + 1, map1, desk1);
+                    }
+
+                    if (coor[i].x + 1 < side && map1[coor[i].y][coor[i].x + 1] === 0) {
+                        map1[coor[i].y][coor[i].x + 1] = 5;
+                        //draw_shot(coor[i].x + 1, coor[i].y, map1, desk1);
+                    }
+
+                    if (coor[i].x + 1 < side && coor[i].y - 1 >= 0 && map1[coor[i].y - 1][coor[i].x + 1] === 0) {
+                        map1[coor[i].y - 1][coor[i].x + 1] = 5;
+                        //draw_shot(coor[i].x + 1, coor[i].y - 1, map1, desk1);
+                    }
+
+                    if (coor[i].y - 1 >= 0 && map1[coor[i].y - 1][coor[i].x] === 0) {
+                        map1[coor[i].y - 1][coor[i].x] = 5;
+                        //draw_shot(coor[i].x, coor[i].y - 1, map1, desk1);
+                    }
+                }
+            }
+
+            function shot_enemy() {
+                let p = {x: -1, y: -1};
+                for (var i = 0, max = coor.length; i < max; i++) {
+                    if (coor[i].x + 1 < side && map1[coor[i].y][coor[i].x + 1] === point.ship) {
+                        p = {x: coor[i].x + 1, y: coor[i].y};
+                        break;
+                    } else if (coor[i].x - 1 >= 0 && map1[coor[i].y][coor[i].x - 1] === point.ship) {
+                        p = {x: coor[i].x - 1, y: coor[i].y};
+                        break;
+                    } else if (coor[i].y + 1 < side && map1[coor[i].y + 1][coor[i].x] === point.ship) {
+                        p = {x: coor[i].x, y: coor[i].y + 1};
+                        break;
+                    } else if (coor[i].y - 1 >= 0 && map1[coor[i].y - 1][coor[i].x] === point.ship) {
+                        p = {x: coor[i].x, y: coor[i].y - 1};
+                        break;
+                    }
+                }
+                return p;
+            }
+
+            function is_exist_hit() {
+                let i, j;
+                while (true) {
+                    j = getRandomInt(0, 10);
+                    i = getRandomInt(0, 10);
+                    if (!(map1[i][j] === 5 || map1[i][j] === 6)) {
+                        break;
+                    }
+                }
+                return {x: j, y: i};
+            }
+
+            function shot_user(i, j) {
+                if (map2[i][j] === 1 || map2[i][j] === 2 || map2[i][j] === 3 || map2[i][j] === 4) {
+                    user_hit++;
+                    if (map2[i][j] === user_hit) {
+                        user_hit = 0;
+                        log("Уничтожен " + map2[i][j] + "-палубный корабль");
+                    } else {
+                        log("Попадание");
+                    }
+
+                    map2[i][j] = 6;
+                    return true;
+                } else {
+                    map2[i][j] = 5;
+                    log("Промах");
+                    return false;
+                }
+            }
+
+            function init_ship(map, ship) {
+                let rows = ship.length;
+                let cols = ship[0].length;
+
+                let x = getRandomInt(0, 10) - 1; // 0 - 9 max = 8
+                let y = getRandomInt(0, 10) - 1; // 0 - 9 max = 8
+
+                if (x + cols - 2 >= side || y + rows - 2 >= side) {
+                    init_ship(map, ship);
+                    return;
+                }
+
+                let flag = true;
+
+                for (var i = y; i < side && i < y + rows; i++) {
+                    if (i === -1) {
+                        continue;
+                    }
+
+                    for (var j = x; j < side && j < x + cols; j++) {
+                        if (j === -1) {
+                            continue;
+                        }
+
+                        if (map[i][j] === 1 || map[i][j] === 2 || map[i][j] === 3 || map[i][j] === 4) {
+                            flag = false;
+                            break;
+                        }
+                    }
+
+                    if (!flag) {
+                        break;
+                    }
+                }
+
+                if (!flag) {
+                    init_ship(map, ship);
+                    return;
+                }
+
+                for (var i = y, si = 0; (i < side && i < y + rows); i++, si++) {
+                    if (i === -1) {
+                        continue;
+                    }
+
+                    for (var j = x, sj = 0; (j < side && j < x + cols); j++, sj++) {
+                        if (j === -1) {
+                            continue;
+                        }
+
+                        if (ship[si][sj] === 1) {
+                            map[i][j] = 1;
+                        } else if (ship[si][sj] === 2) {
+                            map[i][j] = 2;
+                        } else if (ship[si][sj] === 3) {
+                            map[i][j] = 3;
+                        } else if (ship[si][sj] === 4) {
+                            map[i][j] = 4;
+                        }
+                    }
+                }
+
+            }
+
+            function draw(map, elem) {
+                let index = 1;
+                for (var i = 0; i < side; i++) {
+                    for (var j = 0; j < side; j++) {
+                        if (map[i][j] === 1 || map[i][j] === 2 || map[i][j] === 3 || map[i][j] === 4) {
+                            elem.childNodes[index].style.backgroundColor = "black";
+                        }
+                        index++;
+                    }
+                }
+            }
+
+            function draw_shot(x, y, map, elem) {
+                let index = 1;
+                for (var i = 0; i < side; i++) {
+                    for (var j = 0; j < side; j++) {
+                        if (i === y && j === x) {
+                            if (map[i][j] === 5) {
+                                elem.childNodes[index].style.backgroundColor = "green";
+                            } else if (map[i][j] === 6) {
+                                elem.childNodes[index].style.backgroundColor = "red";
+                            }
+                        }
+                        index++;
+                    }
+                }
+            }
+
+            function end_game(map) {
+                for (var i = 0; i < side; i++) {
+                    for (var j = 0; j < side; j++) {
+                        if (map[i][j] === 1 || map[i][j] === 2 || map[i][j] === 3 || map[i][j] === 4) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+
+            function log(text) {
+                let mes = document.getElementById("log");
+                mes.innerHTML = mes.innerHTML + "\n" + text;
+                hs = mes.clientHeight + mes.scrollTop;
+                mes.scrollTop = hs;
+            }
+
+            // 1 - one deck ship - black
+            // 2 - two deck ship - black
+            // 3 - three deck ship - black
+            // 4 - four deck ship - black
+            // 5 - miss - green
+            // 6 - hit - red
+
+            function getRandomInt(min, max) {
+                return Math.floor(Math.random() * (max - min)) + min; //Максимум не включается, минимум включается
+            }
+        </script>
+    </body>
+</html>
