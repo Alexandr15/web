@@ -96,9 +96,9 @@
                 }
 
             }
-            
+
             position_center();
-            
+
             window.addEventListener("resize", position_center);
 
             let one = [
@@ -171,10 +171,10 @@
             }
 
             let coor = [];
-
+            // клик по доске игрока
             let desk1 = document.querySelector(".desk1");
-            desk1.addEventListener("mousedown", click_coor);
-
+            //desk1.addEventListener("mousedown", click_coor);
+            // клик по доске противника
             let desk2 = document.querySelector(".desk2");
             desk2.addEventListener("mousedown", click_coor);
 
